@@ -20,15 +20,10 @@ pom.xml.versionsBackup
 .DS_Store
 Thumbs.db
 
-tarantool_data/
-
+target/
+*.jar
+*.class
+.idea/
+*.iml
 grpcurl
 grpcurl.tar.gz
-
-*.jar
-
-*.snap
-*.xlog
-
-.env
-.env.local
