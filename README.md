@@ -27,7 +27,7 @@ java -jar target/vk-kv-service-1.0-SNAPSHOT-jar-with-dependencies.jar
 
 ### 3. Проверка работы
 
-#### PUT (создать ключ)
+#### PUT 
 ```bash
 ./grpcurl -plaintext -proto src/main/proto/kv.proto \
   -d '{"key": "user:1", "value": "aGVsbG8="}' \
@@ -41,27 +41,27 @@ java -jar target/vk-kv-service-1.0-SNAPSHOT-jar-with-dependencies.jar
   localhost:9090 kv.KVService/Put
 ```
 
-#### GET (получить значение)
+#### GET 
 ```bash
 ./grpcurl -plaintext -proto src/main/proto/kv.proto \
   -d '{"key": "user:1"}' \
   localhost:9090 kv.KVService/Get
 ```
 
-#### COUNT (количество записей)
+#### COUNT 
 ```bash
 ./grpcurl -plaintext -proto src/main/proto/kv.proto \
   localhost:9090 kv.KVService/Count
 ```
 
-#### RANGE (диапазон, streaming)
+#### RANGE 
 ```bash
 ./grpcurl -plaintext -proto src/main/proto/kv.proto \
   -d '{"key_since": "user:1", "key_to": "user:9"}' \
   localhost:9090 kv.KVService/Range
 ```
 
-#### DELETE (удалить)
+#### DELETE 
 ```bash
 ./grpcurl -plaintext -proto src/main/proto/kv.proto \
   -d '{"key": "user:1"}' \
@@ -70,13 +70,13 @@ java -jar target/vk-kv-service-1.0-SNAPSHOT-jar-with-dependencies.jar
 
 ## Технологии
 
-- Tarantool 3.2 (in-memory storage)
+- Tarantool 3.2
 - Java 17
-- gRPC (protobuf)
+- gRPC
 - Maven
 
-## Остановка
+## В конце остановка 
 
 ```bash
-docker-compose down -v  # -v удаляет данные
+docker-compose down -v 
 ```
