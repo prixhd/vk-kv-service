@@ -23,7 +23,12 @@ public class TarantoolKvRepository {
 
     private List<?> call(String function, Object... args) {
         try {
-            Object response = client.call(function, List.of(args)).get();
+            List<Object> argList = new ArrayList<>();
+            for (Object arg : args) {
+                argList.add(arg);
+            }
+
+            Object response = client.call(function, argList).get();
 
             if (response.getClass().getSimpleName().equals("TarantoolResponse")) {
                 java.lang.reflect.Field field = response.getClass().getDeclaredField("data");
@@ -75,7 +80,6 @@ public class TarantoolKvRepository {
             List<?> tuple = (List<?>) item;
             if (tuple.isEmpty()) continue;
 
-            // Безопасное получение ключа
             Object keyObj = tuple.get(0);
             String key;
 

@@ -18,7 +18,7 @@ public class KvGrpcService extends KVServiceGrpc.KVServiceImplBase {
     @Override
     public void put(PutRequest req, StreamObserver<PutResponse> resp) {
         try {
-            byte[] value = req.hasValue() ? req.getValue().toByteArray() : null;
+            byte[] value = req.hasValue() ? req.getValue().getValue().toByteArray() : null;
             repo.put(req.getKey(), value);
             resp.onNext(PutResponse.newBuilder().setSuccess(true).build());
             resp.onCompleted();
