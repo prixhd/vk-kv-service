@@ -2,13 +2,16 @@ package org.example.repository;
 
 import io.tarantool.client.box.TarantoolBoxClient;
 import io.tarantool.client.factory.TarantoolFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class TarantoolKvRepository {
+
     private final TarantoolBoxClient client;
 
-    public TarantoolKvRepository(String host, int port, String user, String password) {
+    public TarantoolKvRepository(String host, int port,
+                                 String user, String password) {
         try {
             this.client = TarantoolFactory.box()
                     .withHost(host)
@@ -31,12 +34,14 @@ public class TarantoolKvRepository {
             Object response = client.call(function, argList).get();
 
             if (response.getClass().getSimpleName().equals("TarantoolResponse")) {
-                java.lang.reflect.Field field = response.getClass().getDeclaredField("data");
+                java.lang.reflect.Field field =
+                        response.getClass().getDeclaredField("data");
                 field.setAccessible(true);
                 return (List<?>) field.get(response);
             }
 
             return (List<?>) response;
+
         } catch (Exception e) {
             throw new RuntimeException("Error calling " + function, e);
         }
@@ -55,9 +60,13 @@ public class TarantoolKvRepository {
 
         List<?> tuple = (List<?>) result.get(0);
         String foundKey = (String) tuple.get(0);
-        byte[] value = tuple.size() > 1 && tuple.get(1) != null ? (byte[]) tuple.get(1) : null;
 
-        return KvResult.found(foundKey, value);
+        byte[] foundValue = null;
+        if (tuple.size() > 1 && tuple.get(1) != null) {
+            foundValue = (byte[]) tuple.get(1);
+        }
+
+        return KvResult.found(foundKey, foundValue);
     }
 
     public boolean delete(String key) {
@@ -87,7 +96,8 @@ public class TarantoolKvRepository {
                 key = (String) keyObj;
             } else if (keyObj instanceof List) {
                 List<?> keyList = (List<?>) keyObj;
-                if (keyList.isEmpty() || !(keyList.get(0) instanceof String)) continue;
+                if (keyList.isEmpty() ||
+                        !(keyList.get(0) instanceof String)) continue;
                 key = (String) keyList.get(0);
             } else {
                 continue;
@@ -113,6 +123,7 @@ public class TarantoolKvRepository {
     }
 
     public static class KvResult {
+
         private final boolean found;
         private final String key;
         private final byte[] value;
@@ -132,7 +143,7 @@ public class TarantoolKvRepository {
         }
 
         public boolean isFound() { return found; }
-        public String getKey() { return key; }
+        public String getKey()   { return key; }
         public byte[] getValue() { return value; }
     }
 }
