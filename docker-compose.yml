@@ -1,0 +1,26 @@
+services:
+  tarantool:
+    image: tarantool/tarantool:3.2
+
+    ports:
+      - "3301:3301"
+
+    volumes:
+      - ./tarantool/init.lua:/opt/tarantool/init.lua
+      - tarantool_data:/var/lib/tarantool
+
+    environment:
+      - TT_MEMTX_MEMORY=1073741824
+      - TT_LOG_LEVEL=5
+      - TT_CHECKPOINT_INTERVAL=600
+
+    command: tarantool /opt/tarantool/init.lua
+
+    healthcheck:
+      test: ["CMD", "tarantool", "-e", "require('net.box').connect('localhost:3301')"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  tarantool_data:
