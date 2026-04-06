@@ -9,17 +9,25 @@ public class KvServiceMain {
     public static void main(String[] args) throws Exception {
         System.out.println("Connecting to Tarantool...");
 
+
+        String host = System.getenv().getOrDefault("TARANTOOL_HOST", "localhost");
+        int port = Integer.parseInt(System.getenv().getOrDefault("TARANTOOL_PORT", "3301"));
+        String user = System.getenv().getOrDefault("TARANTOOL_USER", "admin");
+        String password = System.getenv().getOrDefault("TARANTOOL_PASSWORD", "password");
+        int grpcPort = Integer.parseInt(System.getenv().getOrDefault("GRPC_PORT", "9090"));
+
+
         TarantoolKvRepository repo = new TarantoolKvRepository(
-                "localhost", 3301, "admin", "password"
+                host, port, user, password
         );
 
         Server server = ServerBuilder
-                .forPort(9090)
+                .forPort(grpcPort)
                 .addService(new KvGrpcService(repo))
                 .build()
                 .start();
 
-        System.out.println("gRPC server started on port 9090");
+        System.out.println("gRPC server started on port " + grpcPort);
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("Shutting down...");

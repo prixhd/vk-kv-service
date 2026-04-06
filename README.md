@@ -1,82 +1,41 @@
-# VK KV Storage Service
+# VK KV Service
 
-gRPC сервис для хранения Key-Value данных на Tarantool 3.2.
+gRPC Key-Value сервис на Java с хранением данных в Tarantool.
 
 ## Запуск
 
-### 1. Запуск Tarantool
-
 ```bash
+# Запустить Tarantool
 docker-compose up -d
+
+# Собрать и запустить сервис
+mvn compile exec:java -Dexec.mainClass=org.example.KvServiceMain
 ```
 
-Проверка (должно быть "Stored procedures загружены"):
+## API
+
+| Метод | Описание |
+|-------|----------|
+| Put(key, value) | Сохранить/перезаписать значение |
+| Get(key) | Получить значение |
+| Delete(key) | Удалить запись |
+| Range(key_since, key_to) | Stream пар ключ-значение |
+| Count() | Количество записей |
+
+## Примеры
+
 ```bash
-docker-compose logs tarantool | grep "Stored procedures"
-```
-
-
-### 2. Сборка и запуск Java сервиса
-
-```bash
-mvn clean package
-java -jar target/vk-kv-service-1.0-SNAPSHOT-jar-with-dependencies.jar
-```
-
-Сервис запустится на порту `9090`.
-
-### 3. Проверка работы
-
-#### PUT 
-```bash
+# Put
 ./grpcurl -plaintext -proto src/main/proto/kv.proto \
-  -d '{"key": "user:1", "value": "aGVsbG8="}' \
+  -d '{"key": "hello", "value": "d29ybGQ="}' \
   localhost:9090 kv.KVService/Put
-```
 
-#### PUT с null значением
-```bash
+# Get  
 ./grpcurl -plaintext -proto src/main/proto/kv.proto \
-  -d '{"key": "user:2"}' \
-  localhost:9090 kv.KVService/Put
-```
-
-#### GET 
-```bash
-./grpcurl -plaintext -proto src/main/proto/kv.proto \
-  -d '{"key": "user:1"}' \
+  -d '{"key": "hello"}' \
   localhost:9090 kv.KVService/Get
-```
 
-#### COUNT 
-```bash
+# Count
 ./grpcurl -plaintext -proto src/main/proto/kv.proto \
   localhost:9090 kv.KVService/Count
-```
-
-#### RANGE 
-```bash
-./grpcurl -plaintext -proto src/main/proto/kv.proto \
-  -d '{"key_since": "user:1", "key_to": "user:9"}' \
-  localhost:9090 kv.KVService/Range
-```
-
-#### DELETE 
-```bash
-./grpcurl -plaintext -proto src/main/proto/kv.proto \
-  -d '{"key": "user:1"}' \
-  localhost:9090 kv.KVService/Delete
-```
-
-## Технологии
-
-- Tarantool 3.2
-- Java 17
-- gRPC
-- Maven
-
-## В конце остановка 
-
-```bash
-docker-compose down -v 
 ```

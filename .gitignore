@@ -27,3 +27,4 @@ target/
 *.iml
 grpcurl
 grpcurl.tar.gz
+.env

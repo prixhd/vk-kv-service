@@ -3,7 +3,7 @@ services:
     image: tarantool/tarantool:3.2
 
     ports:
-      - "3301:3301"
+      - "${TARANTOOL_PORT}:3301"
 
     volumes:
       - ./tarantool/init.lua:/opt/tarantool/init.lua

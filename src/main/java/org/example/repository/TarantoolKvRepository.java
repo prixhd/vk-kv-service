@@ -2,6 +2,8 @@ package org.example.repository;
 
 import io.tarantool.client.box.TarantoolBoxClient;
 import io.tarantool.client.factory.TarantoolFactory;
+import io.tarantool.mapping.TarantoolResponse;
+import java.util.function.Consumer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,16 +33,8 @@ public class TarantoolKvRepository {
                 argList.add(arg);
             }
 
-            Object response = client.call(function, argList).get();
-
-            if (response.getClass().getSimpleName().equals("TarantoolResponse")) {
-                java.lang.reflect.Field field =
-                        response.getClass().getDeclaredField("data");
-                field.setAccessible(true);
-                return (List<?>) field.get(response);
-            }
-
-            return (List<?>) response;
+            TarantoolResponse<List<?>> response = client.call(function, argList).get();
+            return response.get();
 
         } catch (Exception e) {
             throw new RuntimeException("Error calling " + function, e);
@@ -79,9 +73,8 @@ public class TarantoolKvRepository {
         return result.isEmpty() ? 0 : ((Number) result.get(0)).longValue();
     }
 
-    public List<KvResult> range(String from, String to) {
+    public void range(String from, String to, Consumer<KvResult> onEach) {
         List<?> result = call("kv_range", from, to);
-        List<KvResult> list = new ArrayList<>();
 
         for (Object item : result) {
             if (!(item instanceof List)) continue;
@@ -96,8 +89,7 @@ public class TarantoolKvRepository {
                 key = (String) keyObj;
             } else if (keyObj instanceof List) {
                 List<?> keyList = (List<?>) keyObj;
-                if (keyList.isEmpty() ||
-                        !(keyList.get(0) instanceof String)) continue;
+                if (keyList.isEmpty() || !(keyList.get(0) instanceof String)) continue;
                 key = (String) keyList.get(0);
             } else {
                 continue;
@@ -108,10 +100,8 @@ public class TarantoolKvRepository {
                 value = (byte[]) tuple.get(1);
             }
 
-            list.add(KvResult.found(key, value));
+            onEach.accept(KvResult.found(key, value));
         }
-
-        return list;
     }
 
     public void close() {

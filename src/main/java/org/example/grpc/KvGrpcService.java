@@ -8,7 +8,6 @@ import org.example.grpc.proto.*;
 import org.example.repository.TarantoolKvRepository;
 import org.example.repository.TarantoolKvRepository.KvResult;
 
-import java.util.List;
 
 public class KvGrpcService extends KVServiceGrpc.KVServiceImplBase {
 
@@ -77,25 +76,22 @@ public class KvGrpcService extends KVServiceGrpc.KVServiceImplBase {
         }
     }
 
+
     @Override
     public void range(RangeRequest req, StreamObserver<KeyValuePair> resp) {
         try {
-            List<KvResult> results = repo.range(
-                    req.getKeySince(), req.getKeyTo()
-            );
-
-            for (KvResult r : results) {
+            repo.range(req.getKeySince(), req.getKeyTo(), result -> {
                 KeyValuePair.Builder pair = KeyValuePair.newBuilder()
-                        .setKey(r.getKey());
+                        .setKey(result.getKey());
 
-                if (r.getValue() != null) {
+                if (result.getValue() != null) {
                     pair.setValue(
-                            BytesValue.of(ByteString.copyFrom(r.getValue()))
+                            BytesValue.of(ByteString.copyFrom(result.getValue()))
                     );
                 }
 
                 resp.onNext(pair.build());
-            }
+            });
 
             resp.onCompleted();
 
