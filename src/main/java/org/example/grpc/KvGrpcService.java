@@ -8,7 +8,6 @@ import org.example.grpc.proto.*;
 import org.example.repository.TarantoolKvRepository;
 import org.example.repository.TarantoolKvRepository.KvResult;
 
-
 public class KvGrpcService extends KVServiceGrpc.KVServiceImplBase {
 
     private final TarantoolKvRepository repo;
@@ -17,12 +16,19 @@ public class KvGrpcService extends KVServiceGrpc.KVServiceImplBase {
         this.repo = repo;
     }
 
+    private BytesValue toProtoBytes(byte[] value) {
+        return BytesValue.of(ByteString.copyFrom(value));
+    }
+
     @Override
     public void put(PutRequest req, StreamObserver<PutResponse> resp) {
         try {
-            byte[] value = req.hasValue()
-                    ? req.getValue().getValue().toByteArray()
-                    : null;
+            byte[] value;
+            if (req.hasValue()) {
+                value = req.getValue().getValue().toByteArray();
+            } else {
+                value = null;
+            }
 
             repo.put(req.getKey(), value);
             resp.onNext(PutResponse.newBuilder().setSuccess(true).build());
@@ -45,10 +51,9 @@ public class KvGrpcService extends KVServiceGrpc.KVServiceImplBase {
 
             if (result.isFound()) {
                 builder.setKey(result.getKey());
+
                 if (result.getValue() != null) {
-                    builder.setValue(
-                            BytesValue.of(ByteString.copyFrom(result.getValue()))
-                    );
+                    builder.setValue(toProtoBytes(result.getValue()));
                 }
             }
 
@@ -76,7 +81,6 @@ public class KvGrpcService extends KVServiceGrpc.KVServiceImplBase {
         }
     }
 
-
     @Override
     public void range(RangeRequest req, StreamObserver<KeyValuePair> resp) {
         try {
@@ -85,9 +89,7 @@ public class KvGrpcService extends KVServiceGrpc.KVServiceImplBase {
                         .setKey(result.getKey());
 
                 if (result.getValue() != null) {
-                    pair.setValue(
-                            BytesValue.of(ByteString.copyFrom(result.getValue()))
-                    );
+                    pair.setValue(toProtoBytes(result.getValue()));
                 }
 
                 resp.onNext(pair.build());

@@ -7,15 +7,13 @@ import org.example.repository.TarantoolKvRepository;
 
 public class KvServiceMain {
     public static void main(String[] args) throws Exception {
-        System.out.println("Connecting to Tarantool...");
-
+        System.out.println("Подключение к Tarantool...");
 
         String host = System.getenv().getOrDefault("TARANTOOL_HOST", "localhost");
         int port = Integer.parseInt(System.getenv().getOrDefault("TARANTOOL_PORT", "3301"));
         String user = System.getenv().getOrDefault("TARANTOOL_USER", "admin");
         String password = System.getenv().getOrDefault("TARANTOOL_PASSWORD", "password");
         int grpcPort = Integer.parseInt(System.getenv().getOrDefault("GRPC_PORT", "9090"));
-
 
         TarantoolKvRepository repo = new TarantoolKvRepository(
                 host, port, user, password
@@ -27,10 +25,10 @@ public class KvServiceMain {
                 .build()
                 .start();
 
-        System.out.println("gRPC server started on port " + grpcPort);
+        System.out.println("gRPC сервер запущен на порту: " + grpcPort);
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("Shutting down...");
+            System.out.println("Завершение работы");
             server.shutdown();
             repo.close();
         }));

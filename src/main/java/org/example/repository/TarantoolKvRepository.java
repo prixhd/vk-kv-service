@@ -3,17 +3,17 @@ package org.example.repository;
 import io.tarantool.client.box.TarantoolBoxClient;
 import io.tarantool.client.factory.TarantoolFactory;
 import io.tarantool.mapping.TarantoolResponse;
-import java.util.function.Consumer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class TarantoolKvRepository {
 
     private final TarantoolBoxClient client;
 
-    public TarantoolKvRepository(String host, int port,
-                                 String user, String password) {
+    public TarantoolKvRepository(String host, int port, String user, String password) {
         try {
             this.client = TarantoolFactory.box()
                     .withHost(host)
@@ -22,23 +22,28 @@ public class TarantoolKvRepository {
                     .withPassword(password)
                     .build();
         } catch (Exception e) {
-            throw new RuntimeException("Failed to connect to Tarantool", e);
+            throw new RuntimeException("Failed connect to Tarantool", e);
         }
     }
 
     private List<?> call(String function, Object... args) {
         try {
-            List<Object> argList = new ArrayList<>();
-            for (Object arg : args) {
-                argList.add(arg);
-            }
+            List<Object> argList = new ArrayList<>(Arrays.asList(args));
 
             TarantoolResponse<List<?>> response = client.call(function, argList).get();
             return response.get();
 
         } catch (Exception e) {
-            throw new RuntimeException("Error calling " + function, e);
+            throw new RuntimeException("Error функции: " + function, e);
         }
+    }
+
+
+    private byte[] extractValue(List<?> tuple) {
+        if (tuple.size() > 1 && tuple.get(1) != null) {
+            return (byte[]) tuple.get(1);
+        }
+        return null;
     }
 
     public void put(String key, byte[] value) {
@@ -55,10 +60,7 @@ public class TarantoolKvRepository {
         List<?> tuple = (List<?>) result.get(0);
         String foundKey = (String) tuple.get(0);
 
-        byte[] foundValue = null;
-        if (tuple.size() > 1 && tuple.get(1) != null) {
-            foundValue = (byte[]) tuple.get(1);
-        }
+        byte[] foundValue = extractValue(tuple);
 
         return KvResult.found(foundKey, foundValue);
     }
@@ -95,10 +97,7 @@ public class TarantoolKvRepository {
                 continue;
             }
 
-            byte[] value = null;
-            if (tuple.size() > 1 && tuple.get(1) != null) {
-                value = (byte[]) tuple.get(1);
-            }
+            byte[] value = extractValue(tuple);
 
             onEach.accept(KvResult.found(key, value));
         }
@@ -108,7 +107,7 @@ public class TarantoolKvRepository {
         try {
             client.close();
         } catch (Exception e) {
-            throw new RuntimeException("Error closing connection", e);
+            throw new RuntimeException("Error close connection", e);
         }
     }
 
